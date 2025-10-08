@@ -1,15 +1,18 @@
 import { Image } from "expo-image";
-import { StyleSheet, View } from "react-native";
+import { ActivityIndicator, Button, StyleSheet, Text, View } from "react-native";
 import Svg, { Rect, Text as SvgText } from "react-native-svg";
 
 import Colors from "../Colors";
-import { Detection } from "../types/types";
+import { Detection } from "../types";
 
 interface ObjectDetectionImageProps {
   imageUri: string;
   imageSize: { width: number; height: number };
   detections: Detection[];
   displaySize: { width: number; height: number };
+  isProcessing: boolean;
+  error?: string;
+  onRetry: () => void;
 }
 
 export default function ObjectDetectionImage({
@@ -17,6 +20,9 @@ export default function ObjectDetectionImage({
   imageSize,
   detections,
   displaySize,
+  isProcessing,
+  error,
+  onRetry,
 }: ObjectDetectionImageProps) {
   // Calculate scaling factors
   const scaleX = displaySize.width / imageSize.width;
@@ -25,6 +31,19 @@ export default function ObjectDetectionImage({
   return (
     <View style={[styles.imageContainer, displaySize]}>
       <Image source={{ uri: imageUri }} style={styles.image} />
+      {isProcessing && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={Colors.light.tint} />
+        </View>
+      )}
+      {error && (
+        <View style={styles.loadingOverlay}>
+          <Text style={styles.errorText}>{error}</Text>
+          <View style={styles.retryButton}>
+            <Button title="Retry" onPress={onRetry} color="#fff" />
+          </View>
+        </View>
+      )}
       <Svg
         height="100%"
         width="100%"
@@ -32,7 +51,7 @@ export default function ObjectDetectionImage({
         style={styles.svg}
       >
         {detections.map((d, i) => (
-          // Using a React.Fragment to group the Rect and SvgText for each detection
+
           <Svg key={i}>
             <Rect
               x={d.box.x}
@@ -62,11 +81,39 @@ export default function ObjectDetectionImage({
 const styles = StyleSheet.create({
   imageContainer: {
     position: "relative",
-    marginTop: 20,
+    marginVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.light.card,
+    // Shadow for iOS
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    // Shadow for Android
+    elevation: 5,
   },
   image: {
     width: "100%",
     height: "100%",
+    borderRadius: 12,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+  },
+  errorText: {
+    color: "white",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  retryButton: {
+    marginTop: 10,
   },
   svg: {
     position: "absolute",
@@ -75,4 +122,4 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
-});
+})

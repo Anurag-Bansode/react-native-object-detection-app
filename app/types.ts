@@ -9,10 +9,11 @@ export interface Detection {
   box: BoundingBox;
   label: string;
 }
+
 export interface ImageState {
   uri: string;
   size: { width: number; height: number };
   detections: Detection[];
   processing: boolean;
-
+  error?: string;
 }
